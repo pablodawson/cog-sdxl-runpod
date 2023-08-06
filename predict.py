@@ -259,6 +259,25 @@ class Predictor(BasePredictor):
             seed = int.from_bytes(os.urandom(2), "big")
         print(f"Using seed: {seed}")
 
+        
+        # Type errors, replicate Input() constraints
+        prompt = str(prompt)
+        negative_prompt = str(negative_prompt)
+        width = int(width)
+        height = int(height)
+        num_outputs = int(num_outputs)
+        num_inference_steps = int(num_inference_steps)
+        guidance_scale = float(guidance_scale)
+        prompt_strength = float(prompt_strength)
+        seed = int(seed)
+        high_noise_frac = float(high_noise_frac)
+        if refine_steps is None:
+            refine_steps = num_inference_steps
+        else:
+            refine_steps = int(refine_steps)
+        apply_watermark = bool(apply_watermark)
+
+
         sdxl_kwargs = {}
         if self.tuned_model:
             # consistency with fine-tuning API

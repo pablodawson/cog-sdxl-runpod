@@ -22,11 +22,13 @@ INPUT_SCHEMA = {
     },
     'image' : {
         'type': str,
-        'required': False
+        'required': False,
+        'default': None
     },
     'mask': {
         'type': str,
-        'required': False
+        'required': False,
+        'default': None
     },
     'width': {
         'type': int,
@@ -79,6 +81,7 @@ INPUT_SCHEMA = {
         'type' : str,
         'required' : False,
         'constraints' : lambda refine : refine in ["no_refiner", "expert_ensemble_refiner", "base_image_refiner"],
+        'default' : "no_refiner"
     },
     'high_noise_frac': {
         'type': float,
@@ -88,7 +91,8 @@ INPUT_SCHEMA = {
     },
     'refine_steps': {
         'type': int,
-        'required': False
+        'required': False,
+        'default': 30,
     }
 }
 
@@ -107,11 +111,11 @@ def run(job):
         return {"error": validated_input['errors']}
     validated_input = validated_input['validated_input']
 
-    # Download input objects
-    job_input['image'], job_input['mask'] = rp_download.download_input_objects(
+    job_input['image'], job_input['mask'] = rp_download.download_files_from_urls(
+        job['id'],
         [job_input.get('image', None), job_input.get('mask', None)]
     )  # pylint: disable=unbalanced-tuple-unpacking
-
+    
     if validated_input['seed'] is None:
         validated_input['seed'] = int.from_bytes(os.urandom(2), "big")
 
@@ -137,7 +141,7 @@ def run(job):
 
     for index, img_path in enumerate(img_paths):
         image_url = rp_upload.upload_image(job['id'], img_path, index)
-
+        
         job_output.append({
             "image": image_url,
             "seed": job_input['seed'] + index
@@ -147,6 +151,5 @@ def run(job):
     rp_cleanup.clean(['input_objects'])
 
     return job_output
-
 
 runpod.serverless.start({"handler": run})
